@@ -7,15 +7,15 @@ pkgbase=lib32-mesa-radv
 # Jupiter: only build RADV, the rest comes from upstream/Arch Mesa
 pkgname=('lib32-vulkan-radeon')
 pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
-_tag=jupiter-22.1.4
-pkgver=22.1.0_devel.150449.jupiter_22.1.4
-pkgrel=1
+_tag=jupiter-22.2.0
+pkgver=22.2.0_devel.152949.jupiter_22.2.0
+pkgrel=2
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'lib32-libxml2' 'lib32-expat' 'lib32-libx11' 'xorgproto' 'lib32-libdrm'
              'lib32-libxshmfence'
              'lib32-wayland' 'wayland-protocols' 'lib32-zstd' 'lib32-libelf'
              'lib32-llvm' 'lib32-libunwind'
-             'lib32-libxrandr' 'meson')
+             'lib32-libxrandr' 'meson' 'glslang')
 url="https://www.mesa3d.org/"
 license=('custom')
 source=("jupiter-mesa::git+https://github.com/evlav/mesa.git#tag=$_tag"
