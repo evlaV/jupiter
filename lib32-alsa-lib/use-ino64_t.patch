@@ -1,0 +1,29 @@
+From: Simon McVittie <smcv@collabora.com>
+Subject: Use ino64_t to save and compare inode numbers
+Origin: https://github.com/alsa-project/alsa-lib/commit/87ff5318e327eb2343f10bd73dce5a32f12db622
+Bug: https://github.com/alsa-project/alsa-lib/pull/231
+diff --git a/include/local.h b/include/local.h
+index c166e01e..877ee793 100644
+--- a/include/local.h
++++ b/include/local.h
+@@ -84,6 +84,7 @@
+ #define scandir64 scandir
+ #define versionsort64 versionsort
+ #define alphasort64 alphasort
++#define ino64_t ino_t
+ #endif
+ 
+ #define _snd_config_iterator list_head
+diff --git a/src/conf.c b/src/conf.c
+index a2ede5aa..a0bee610 100644
+--- a/src/conf.c
++++ b/src/conf.c
+@@ -3919,7 +3919,7 @@ snd_config_t *snd_config = NULL;
+ struct finfo {
+ 	char *name;
+ 	dev_t dev;
+-	ino_t ino;
++	ino64_t ino;
+ 	time_t mtime;
+ };
+ 

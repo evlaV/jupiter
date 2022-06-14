@@ -1,0 +1,59 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+
+_name=alsa-lib
+pkgname=lib32-alsa-lib
+pkgver=1.2.6.1
+pkgrel=1.1
+pkgdesc="An alternative implementation of Linux sound support (32 bit)"
+arch=(x86_64)
+url="https://www.alsa-project.org"
+license=(LGPL2.1)
+depends=(lib32-glibc "alsa-lib=${pkgver}" lib32-pipewire)
+provides=(libasound.so libatopology.so)
+source=("https://www.alsa-project.org/files/pub/lib/${_name}-${pkgver}.tar.bz2"{,.sig}
+        use-lfs-calls.patch
+        use-ino64_t.patch)
+sha512sums=('70e539cf092b5d43e00e4134d8a3e184f0dc34312823e4b58a574320cbf06cb7369bc3251ecb1858033756a7a8c35d36faa8da48d49f6efe0cec905784adbd45'
+            'SKIP'
+            'caad8dcb1b684b53ab99906f3059ed95c4f21a4a91cde9dda3feb8d85c520bf166d3cd51c3c9475225419b2bf14d8102582869be854939fff39021bf6fe11482'
+            '7bffe4f99567ddd908e763d213e7ed1115b4737e7890c4af63a980d7c59794c6a0c7e1cef10046dd12fbdc141c7a595d5b1382eab37b6863fd841e3de0e12467')
+b2sums=('4f3d1d078678773b4f6a569d0eea95d0cf89a846605c3a95e11b92f1fe0bd9fb164b8f710906f0de9675ade7ef2123375eb1221945bec511708d6fdd85c051b9'
+        'SKIP'
+        '3d1ccdae665743b4b8d0e5a5bd8595216fd030b18c3fa23a206a8f5e9da547a4e17c5736f351db5c08d25bc1e88132c61e56d00fd63fd814ef4a5050cbc4b11a'
+        '30c7accc53f9b674b0a9789440b790eb7edfd89be2cd7693164d08d47e91bf21ab1b9b8c385c0dddf1d491803a03e899035b957d94e0c5bf89ba4e21242bbe2f')
+validpgpkeys=('F04DF50737AC1A884C4B3D718380596DA6E59C91') # ALSA Release Team (Package Signing Key v1) <release@alsa-project.org>
+
+prepare() {
+  cd "${_name}-$pkgver"
+  patch -p1 -i "${srcdir}"/use-lfs-calls.patch
+  patch -p1 -i "${srcdir}"/use-ino64_t.patch
+  autoreconf -fiv
+}
+
+build() {
+  cd "${_name}-$pkgver"
+
+  export CC='gcc -m32'
+  export PKG_CONFIG=i686-pc-linux-gnu-pkg-config
+
+  ./configure --prefix=/usr \
+              --libdir=/usr/lib32 \
+              --without-debug \
+              --disable-python
+  # prevent excessive overlinking due to libtool
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+}
+
+check() {
+  cd "${_name}-$pkgver"
+  export LD_LIBRARY_PATH="${PWD}/src/.libs/:${LD_LIBRARY_PATH}"
+  make -k check
+}
+
+package() {
+  cd "${_name}-$pkgver"
+  make DESTDIR="$pkgdir" install
+  rm -r "$pkgdir"/usr/{bin,include,share}
+}

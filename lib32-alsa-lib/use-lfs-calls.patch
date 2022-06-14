@@ -1,0 +1,298 @@
+From: Jaroslav Kysela <perex@perex.cz>
+Subject: Use LFS calls when reading config files
+Origin: https://github.com/alsa-project/alsa-lib/compare/87034d6fc607528a9df5e1793d159e2f6904ebd8..a513e65e1919d9cd4df5e43f595414e5cf16270e
+Bug: https://github.com/alsa-project/alsa-lib/pull/223
+diff --git a/configure.ac b/configure.ac
+index 2d780788..d7e7653d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -235,6 +235,26 @@ if test "$softfloat" != "yes"; then
+   ALSA_DEPLIBS="-lm"
+ fi
+ 
++dnl Check for scandir64
++AC_MSG_CHECKING(for LFS calls)
++lfs=
++AC_ARG_WITH(lfs,
++  AS_HELP_STRING([--with-lfs], [Use LFS calls (default = yes)]),
++  [ have_lfs="$withval" ], [ have_lfs="yes" ])
++HAVE_LIBDL=
++if test "$have_lfs" = "yes"; then
++  AC_TRY_LINK([#include <dirent.h>],
++    [struct dirent64 a; ],
++    [have_lfs=yes],
++    [have_lfs=no])
++fi
++if test "$have_lfs" = "yes"; then
++  AC_MSG_RESULT(yes)
++  AC_DEFINE([HAVE_LFS], 1, [Have LFS])
++else
++  AC_MSG_RESULT(no)
++fi
++
+ dnl Check for libdl
+ AC_MSG_CHECKING(for libdl)
+ AC_ARG_WITH(libdl,
+diff --git a/include/local.h b/include/local.h
+index ebc9350c..c166e01e 100644
+--- a/include/local.h
++++ b/include/local.h
+@@ -76,6 +76,16 @@
+ #error "Unsupported endian..."
+ #endif
+ 
++#ifndef HAVE_LFS
++#define stat64 stat
++#define lstat64 lstat
++#define dirent64 dirent
++#define readdir64 readdir
++#define scandir64 scandir
++#define versionsort64 versionsort
++#define alphasort64 alphasort
++#endif
++
+ #define _snd_config_iterator list_head
+ #define _snd_interval snd_interval
+ #define _snd_pcm_info snd_pcm_info
+diff --git a/src/conf.c b/src/conf.c
+index d3597cbc..a2ede5aa 100644
+--- a/src/conf.c
++++ b/src/conf.c
+@@ -4062,7 +4062,7 @@ static int snd_config_hooks(snd_config_t *config, snd_config_t *private_data)
+ 	return err;
+ }
+ 
+-static int config_filename_filter(const struct dirent *dirent)
++static int config_filename_filter(const struct dirent64 *dirent)
+ {
+ 	size_t flen;
+ 
+@@ -4100,13 +4100,13 @@ static int config_file_open(snd_config_t *root, const char *filename)
+ 
+ static int config_file_load(snd_config_t *root, const char *fn, int errors)
+ {
+-	struct stat st;
+-	struct dirent **namelist;
++	struct stat64 st;
++	struct dirent64 **namelist;
+ 	int err, n;
+ 
+ 	if (!errors && access(fn, R_OK) < 0)
+ 		return 1;
+-	if (stat(fn, &st) < 0) {
++	if (stat64(fn, &st) < 0) {
+ 		SNDERR("cannot stat file/directory %s", fn);
+ 		return 1;
+ 	}
+@@ -4114,12 +4114,12 @@ static int config_file_load(snd_config_t *root, const char *fn, int errors)
+ 		return config_file_open(root, fn);
+ #ifndef DOC_HIDDEN
+ #if defined(_GNU_SOURCE) && !defined(__NetBSD__) && !defined(__FreeBSD__) && !defined(__sun) && !defined(ANDROID)
+-#define SORTFUNC	versionsort
++#define SORTFUNC	versionsort64
+ #else
+-#define SORTFUNC	alphasort
++#define SORTFUNC	alphasort64
+ #endif
+ #endif
+-	n = scandir(fn, &namelist, config_filename_filter, SORTFUNC);
++	n = scandir64(fn, &namelist, config_filename_filter, SORTFUNC);
+ 	if (n > 0) {
+ 		int j;
+ 		err = 0;
+@@ -4543,9 +4543,9 @@ int snd_config_update_r(snd_config_t **_top, snd_config_update_t **_update, cons
+ 		c++;
+ 	}
+ 	for (k = 0; k < local->count; ++k) {
+-		struct stat st;
++		struct stat64 st;
+ 		struct finfo *lf = &local->finfo[k];
+-		if (stat(lf->name, &st) >= 0) {
++		if (stat64(lf->name, &st) >= 0) {
+ 			lf->dev = st.st_dev;
+ 			lf->ino = st.st_ino;
+ 			lf->mtime = st.st_mtime;
+diff --git a/src/pcm/pcm_ladspa.c b/src/pcm/pcm_ladspa.c
+index ad73347d..9b2b32d7 100644
+--- a/src/pcm/pcm_ladspa.c
++++ b/src/pcm/pcm_ladspa.c
+@@ -32,6 +32,7 @@
+  *   http://www.medianet.ag
+  */
+   
++#include "config.h"
+ #include <dirent.h>
+ #include <locale.h>
+ #include <math.h>
+@@ -1147,7 +1148,7 @@ static int snd_pcm_ladspa_check_dir(snd_pcm_ladspa_plugin_t * const plugin,
+ 				    const unsigned long ladspa_id)
+ {
+ 	DIR *dir;
+-	struct dirent * dirent;
++	struct dirent64 * dirent;
+ 	int len = strlen(path), err;
+ 	int need_slash;
+ 	char *filename;
+@@ -1161,7 +1162,7 @@ static int snd_pcm_ladspa_check_dir(snd_pcm_ladspa_plugin_t * const plugin,
+ 		return -ENOENT;
+ 		
+ 	while (1) {
+-		dirent = readdir(dir);
++		dirent = readdir64(dir);
+ 		if (!dirent) {
+ 			closedir(dir);
+ 			return 0;
+diff --git a/src/pcm/pcm_local.h b/src/pcm/pcm_local.h
+index 6f03365c..8d25971f 100644
+--- a/src/pcm/pcm_local.h
++++ b/src/pcm/pcm_local.h
+@@ -20,6 +20,8 @@
+  *
+  */
+ 
++#include "config.h"
++
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <limits.h>
+diff --git a/src/ucm/main.c b/src/ucm/main.c
+index 078cfd64..c7b65158 100644
+--- a/src/ucm/main.c
++++ b/src/ucm/main.c
+@@ -155,7 +155,7 @@ static int read_tlv_file(unsigned int **res,
+ {
+ 	int err = 0;
+ 	int fd;
+-	struct stat st;
++	struct stat64 st;
+ 	size_t sz;
+ 	ssize_t sz_read;
+ 	struct snd_ctl_tlv *tlv;
+@@ -165,7 +165,7 @@ static int read_tlv_file(unsigned int **res,
+ 		err = -errno;
+ 		return err;
+ 	}
+-	if (fstat(fd, &st) == -1) {
++	if (fstat64(fd, &st) == -1) {
+ 		err = -errno;
+ 		goto __fail;
+ 	}
+@@ -207,7 +207,7 @@ static int binary_file_parse(snd_ctl_elem_value_t *dst,
+ {
+ 	int err = 0;
+ 	int fd;
+-	struct stat st;
++	struct stat64 st;
+ 	size_t sz;
+ 	ssize_t sz_read;
+ 	char *res;
+@@ -225,7 +225,7 @@ static int binary_file_parse(snd_ctl_elem_value_t *dst,
+ 		err = -errno;
+ 		return err;
+ 	}
+-	if (stat(filepath, &st) == -1) {
++	if (stat64(filepath, &st) == -1) {
+ 		err = -errno;
+ 		goto __fail;
+ 	}
+diff --git a/src/ucm/parser.c b/src/ucm/parser.c
+index 48790057..8f8d1f52 100644
+--- a/src/ucm/parser.c
++++ b/src/ucm/parser.c
+@@ -35,7 +35,7 @@
+ #include <dirent.h>
+ #include <limits.h>
+ 
+-static int filename_filter(const struct dirent *dirent);
++static int filename_filter(const struct dirent64 *dirent);
+ 
+ static int parse_sequence(snd_use_case_mgr_t *uc_mgr,
+ 			  struct list_head *base,
+@@ -2437,7 +2437,7 @@ __error:
+ 	return err;
+ }
+ 
+-static int filename_filter(const struct dirent *dirent)
++static int filename_filter(const struct dirent64 *dirent)
+ {
+ 	if (dirent == NULL)
+ 		return 0;
+@@ -2471,7 +2471,7 @@ int uc_mgr_scan_master_configs(const char **_list[])
+ 	int i, j, cnt, err;
+ 	long l;
+ 	ssize_t ss;
+-	struct dirent **namelist;
++	struct dirent64 **namelist;
+ 
+ 	if (env)
+ 		snprintf(filename, sizeof(filename), "%s/conf.virt.d", env);
+@@ -2480,11 +2480,11 @@ int uc_mgr_scan_master_configs(const char **_list[])
+ 			 snd_config_topdir());
+ 
+ #if defined(_GNU_SOURCE) && !defined(__NetBSD__) && !defined(__FreeBSD__) && !defined(__sun) && !defined(ANDROID)
+-#define SORTFUNC	versionsort
++#define SORTFUNC	versionsort64
+ #else
+-#define SORTFUNC	alphasort
++#define SORTFUNC	alphasort64
+ #endif
+-	err = scandir(filename, &namelist, filename_filter, SORTFUNC);
++	err = scandir64(filename, &namelist, filename_filter, SORTFUNC);
+ 	if (err < 0) {
+ 		err = -errno;
+ 		uc_error("error: could not scan directory %s: %s",
+diff --git a/src/ucm/ucm_exec.c b/src/ucm/ucm_exec.c
+index 4ddf5d15..fffff55c 100644
+--- a/src/ucm/ucm_exec.c
++++ b/src/ucm/ucm_exec.c
+@@ -44,10 +44,10 @@ static int find_exec(const char *name, char *out, size_t len)
+ 	char bin[PATH_MAX];
+ 	char *path, *tmp, *tmp2 = NULL;
+ 	DIR *dir;
+-	struct dirent *de;
+-	struct stat st;
++	struct dirent64 *de;
++	struct stat64 st;
+ 	if (name[0] == '/') {
+-		if (lstat(name, &st))
++		if (lstat64(name, &st))
+ 			return 0;
+ 		if (!S_ISREG(st.st_mode) || !(st.st_mode & S_IEXEC))
+ 			return 0;
+@@ -63,12 +63,12 @@ static int find_exec(const char *name, char *out, size_t len)
+ 	tmp = strtok_r(path, ":", &tmp2);
+ 	while (tmp && !ret) {
+ 		if ((dir = opendir(tmp))) {
+-			while ((de = readdir(dir))) {
++			while ((de = readdir64(dir))) {
+ 				if (strstr(de->d_name, name) != de->d_name)
+ 					continue;
+ 				snprintf(bin, sizeof(bin), "%s/%s", tmp,
+ 					 de->d_name);
+-				if (lstat(bin, &st))
++				if (lstat64(bin, &st))
+ 					continue;
+ 				if (!S_ISREG(st.st_mode)
+ 				    || !(st.st_mode & S_IEXEC))
+diff --git a/src/ucm/ucm_subs.c b/src/ucm/ucm_subs.c
+index 0ed400d1..d9c75f30 100644
+--- a/src/ucm/ucm_subs.c
++++ b/src/ucm/ucm_subs.c
+@@ -499,7 +499,7 @@ static char *rval_env(snd_use_case_mgr_t *uc_mgr ATTRIBUTE_UNUSED, const char *i
+ static char *rval_sysfs(snd_use_case_mgr_t *uc_mgr ATTRIBUTE_UNUSED, const char *id)
+ {
+ 	char path[PATH_MAX], link[PATH_MAX + 1];
+-	struct stat sb;
++	struct stat64 sb;
+ 	ssize_t len;
+ 	const char *e;
+ 	int fd;
+@@ -510,7 +510,7 @@ static char *rval_sysfs(snd_use_case_mgr_t *uc_mgr ATTRIBUTE_UNUSED, const char
+ 	if (id[0] == '/')
+ 		id++;
+ 	snprintf(path, sizeof(path), "%s/%s", e, id);
+-	if (lstat(path, &sb) != 0)
++	if (lstat64(path, &sb) != 0)
+ 		return NULL;
+ 	if (S_ISLNK(sb.st_mode)) {
+ 		len = readlink(path, link, sizeof(link) - 1);
