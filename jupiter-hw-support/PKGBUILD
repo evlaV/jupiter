@@ -1,7 +1,7 @@
 # Maintainer: Pierre-Loup A. Griffais (pgriffais@valvesoftware.com)
 
 pkgname=jupiter-hw-support
-_srctag=jupiter-20220721.3
+_srctag=jupiter-20220727.1
 _srcver=${_srctag#jupiter-}
 pkgver=${_srcver//-/.}
 pkgrel=1
@@ -17,7 +17,7 @@ depends=('python-evdev'
          'parted' 'e2fsprogs' # for sdcard formatting
         )
 optdepends=('grub-steamos')
-makedepends=('rsync' 'git' 'xorg-xcursorgen')
+makedepends=('rsync' 'git' 'openssh' 'xorg-xcursorgen')
 source=("git+https://github.com/evlav/jupiter-hw-support.git#tag=$_srctag")
 sha512sums=(SKIP)
 # Some pre-compiled binaries such as `rfp-cli` break when touched by `strip` :-\
