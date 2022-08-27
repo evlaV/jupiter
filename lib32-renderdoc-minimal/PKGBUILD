@@ -11,8 +11,8 @@
 
 pkgname=lib32-renderdoc-minimal
 pkgver=1.21
-pkgrel=1
-pkgdesc="OpenGL and Vulkan debugging tool (32-bit)"
+pkgrel=3
+pkgdesc="OpenGL and Vulkan debugging tool (minimal, capture-only, 32-bit)"
 arch=(x86_64)
 url="https://github.com/baldurk/renderdoc"
 license=("MIT")
