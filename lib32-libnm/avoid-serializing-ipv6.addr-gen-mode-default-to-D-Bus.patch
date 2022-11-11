@@ -1,0 +1,69 @@
+From 70060d570b4b35e029a5d6ab8aa8026563ad580c Mon Sep 17 00:00:00 2001
+From: Thomas Haller <thaller@redhat.com>
+Date: Thu, 8 Sep 2022 13:06:13 +0200
+Subject: [PATCH] libnm: avoid serializing "ipv6.addr-gen-mode" default to
+ D-Bus
+
+When serializing setting properties to GVariant/D-Bus, we usually
+omit values that are set to the default. That is done by libnm(-core),
+so it happens both on the daemon and client side. That might be
+useful to avoid a large number of properties on D-Bus.
+
+Before changing the default value for "ipv6.addr-gen-mode" ([1]), we
+would not serialize the previous default value ("stable-privacy").
+Now we would serialize the new default value ("default). This change
+causes problems.
+
+Scenario 1: have a profile in the daemon with "ipv6.addr-gen-mode=stable-privacy",
+have an older daemon version before [1] and a newer client after [1]. Result:
+
+  The daemon exposes the profile on D-Bus without the addr-gen-mode
+  field (because it's the default). To the client, that is interpreted
+  differently, as "ipv6.addr-gen-mode=default". This is already somewhat
+  a problem.
+  More severe is when modifying the profile, the client would now serialize
+  the value "default" on D-Bus, which the older daemon rejects as invalid.
+  That means, you could not modify the profile, unless also resetting
+  addr-gen-mode to "stable-privacy" or "eui64".
+
+You can imagine other scenarios where either the daemon or the client is
+before/after change [1] and the addr-gen-mode is set to either "default"
+or "stable-privacy". Depending on what scenario you look, that can either be
+good or bad.
+
+Scenario 1 is pretty bad, because it means `dnf upgrade NetworkManager
+&& nmcli connection modify ...` will fail (if the daemon was not
+restated). So try to fix Scenario 1, by also not serializing the new
+default value on D-Bus. Of course, some of the scenarios will get
+different problems, by exacerbating one side misunderstanding the actually
+set value and interpreting a missing value on D-Bus wrongly.  But those
+problems are likely less severe.
+
+In case both client and daemon are older/newer than [1], it doesn't
+matter either way. The problem happens with different version and is
+caused by a change of the default value.
+
+[1] https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/commit/e6a33c04ebe1ac84e31628911e25bdfd7534dd3c
+
+https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/merge_requests/1372
+---
+ src/libnm-core-impl/nm-setting-ip6-config.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/libnm-core-impl/nm-setting-ip6-config.c b/src/libnm-core-impl/nm-setting-ip6-config.c
+index 83c7e9dc6c..c6288b2694 100644
+--- a/src/libnm-core-impl/nm-setting-ip6-config.c
++++ b/src/libnm-core-impl/nm-setting-ip6-config.c
+@@ -832,8 +832,7 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
+                                              NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_DEFAULT,
+                                              NM_SETTING_PARAM_NONE,
+                                              NMSettingIP6ConfigPrivate,
+-                                             addr_gen_mode,
+-                                             .to_dbus_including_default = TRUE);
++                                             addr_gen_mode);
+ 
+     /**
+      * NMSettingIP6Config:token:
+-- 
+GitLab
+
