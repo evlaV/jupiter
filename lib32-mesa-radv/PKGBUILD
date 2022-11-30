@@ -7,9 +7,9 @@ pkgbase=lib32-mesa-radv
 # Jupiter: only build RADV, the rest comes from upstream/Arch Mesa
 pkgname=('lib32-vulkan-radeon')
 pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
-_tag=jupiter-22.3.3
-pkgver=22.2.0_devel.156805.jupiter_22.3.3
-pkgrel=1
+_tag=jupiter-22.3.2
+pkgver=22.2.0_devel.156801.jupiter_22.3.2
+pkgrel=3
 arch=('x86_64')
 makedepends=('git' 'openssh' 'python-mako' 'lib32-libxml2' 'lib32-expat' 'lib32-libx11' 'xorgproto' 'lib32-libdrm'
              'lib32-libxshmfence'
@@ -18,6 +18,7 @@ makedepends=('git' 'openssh' 'python-mako' 'lib32-libxml2' 'lib32-expat' 'lib32-
              'lib32-libxrandr' 'meson' 'glslang')
 url="https://www.mesa3d.org/"
 license=('custom')
+options=('debug' '!lto')
 source=("jupiter-mesa::git+https://github.com/evlav/mesa.git#tag=$_tag"
         LICENSE)
 sha512sums=('SKIP'
@@ -38,6 +39,10 @@ pkgver() {
 }
 
 build() {
+  # Build only minimal debug info to reduce size
+  CFLAGS+=' -g1'
+  CXXFLAGS+=' -g1'
+
   export CC="gcc -m32"
   export CXX="g++ -m32"
   export PKG_CONFIG="i686-pc-linux-gnu-pkg-config"
@@ -60,8 +65,8 @@ END
   arch-meson jupiter-mesa build \
     --native-file crossfile.ini \
     --libdir=/usr/lib32 \
-    -D b_lto=true \
     -D b_ndebug=true \
+    -D b_lto=false \
     -D platforms=x11,wayland \
     -D dri-drivers= \
     -D gallium-drivers= \
@@ -79,8 +84,7 @@ END
     -D lmsensors=disabled \
     -D osmesa=false \
     -D microsoft-clc=disabled \
-    -D valgrind=disabled \
-    -D radv-build-id="3b632f3dc8048b71dc53dc5027990382dee13fd5"
+    -D valgrind=disabled
 
   # Print config
   meson configure build
@@ -133,7 +137,8 @@ package_lib32-opencl-mesa() {
 
 package_lib32-vulkan-intel() {
   pkgdesc="Intel's Vulkan mesa driver (32-bit)"
-  depends=('lib32-wayland' 'lib32-libx11' 'lib32-libxshmfence' 'lib32-libdrm' 'lib32-zstd')
+  depends=('lib32-wayland' 'lib32-libx11' 'lib32-libxshmfence' 'lib32-libdrm' 'lib32-zstd'
+           'lib32-systemd')
   optdepends=('lib32-vulkan-mesa-layers: additional vulkan layers')
   provides=('lib32-vulkan-driver')
 
@@ -146,7 +151,7 @@ package_lib32-vulkan-intel() {
 package_lib32-vulkan-radeon() {
   pkgdesc="Radeon's Vulkan mesa driver (32-bit)"
   depends=('lib32-wayland' 'lib32-libx11' 'lib32-libxshmfence' 'lib32-libelf' 'lib32-libdrm'
-           'lib32-zstd' 'lib32-llvm-libs' 'vulkan-radeon')
+           'lib32-zstd' 'lib32-llvm-libs' 'lib32-systemd' 'vulkan-radeon')
   optdepends=('lib32-vulkan-mesa-layers: additional vulkan layers')
   provides=('lib32-vulkan-driver')
 
@@ -199,6 +204,7 @@ package_lib32-mesa() {
   _install fakeinstall/usr/lib32/lib{gbm,glapi}.so*
   _install fakeinstall/usr/lib32/libOSMesa.so*
   _install fakeinstall/usr/lib32/libxatracker.so*
+  #_install fakeinstall/usr/lib32/libswrAVX*.so*
 
   rm -rv fakeinstall/usr/include
   _install fakeinstall/usr/lib32/pkgconfig
