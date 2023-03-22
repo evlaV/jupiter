@@ -2,7 +2,7 @@
 # Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
 pkgbase=linux-neptune-rtw-debug
-_tag=5.13.0-valve12-rtwdbg-4
+_tag=5.13.0-valve38-rtwdbg-6
 pkgver=${_tag//-/.}
 pkgrel=1
 pkgdesc='Linux'
