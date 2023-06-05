@@ -5,10 +5,10 @@
 
 pkgbase=lib32-mesa
 # Jupiter: drop radv vulkan driver - separate sources and package
-pkgname=('lib32-vulkan-mesa-layers' 'lib32-opencl-mesa' 'lib32-vulkan-intel' 'lib32-libva-mesa-driver' 'lib32-mesa-vdpau' 'lib32-mesa')
+pkgname=('lib32-vulkan-mesa-layers-unstable' 'lib32-opencl-mesa-unstable' 'lib32-vulkan-intel-unstable' 'lib32-libva-mesa-driver-unstable' 'lib32-mesa-vdpau-unstable' 'lib32-mesa-unstable')
 pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
-_tag=radeonsi-3.4.0-2
-pkgver=22.2.0.157821.radeonsi_3.4.0_2
+_tag=radeonsi-3.5.0
+pkgver=23.1.1.170090.radeonsi_3.5.0
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'openssh' 'python-mako' 'lib32-libxml2' 'lib32-expat' 'lib32-libx11' 'xorgproto' 'lib32-libdrm'
@@ -55,7 +55,6 @@ END
   # swr driver is broken with some cpu see FS#66972
 
   # Jupiter:
-  #  - drop all dri drivers
   #  - drop most gallium drivers but radeonsi, swrast and zink
   #  - drop radv vulkan driver - separate sources and package
   #  - disable xa - unused by our gallium drivers
@@ -65,7 +64,6 @@ END
     -D b_ndebug=true \
     -D b_lto=false \
     -D platforms=x11,wayland \
-    -D dri-drivers= \
     -D gallium-drivers=radeonsi,swrast,zink \
     -D vulkan-drivers=intel \
     -D vulkan-layers=device-select,intel-nullhw,overlay \
@@ -78,7 +76,7 @@ END
     -D gallium-va=enabled \
     -D gallium-vdpau=enabled \
     -D gallium-xa=disabled \
-    -D gallium-xvmc=disabled \
+    -D android-libbacktrace=disabled \
     -D gbm=enabled \
     -D gles1=disabled \
     -D gles2=enabled \
@@ -107,14 +105,14 @@ END
 _install() {
   local src f dir
   for src; do
-    f="${src#fakeinstall/}"
-    dir="${pkgdir}/${f%/*}"
+    f="${src#fakeinstall/usr/}"
+    dir="${pkgdir}/usr/lib/steamos/mesa/${f%/*}"
     install -m755 -d "${dir}"
     mv -v "${src}" "${dir}/"
   done
 }
 
-package_lib32-vulkan-mesa-layers() {
+package_lib32-vulkan-mesa-layers-unstable() {
   pkgdesc="Mesa's Vulkan layers (32-bit)"
   depends=('lib32-libdrm' 'lib32-libxcb' 'lib32-wayland' 'vulkan-mesa-layers')
   conflicts=('lib32-vulkan-mesa-layer')
@@ -126,10 +124,10 @@ package_lib32-vulkan-mesa-layers() {
 
   _install fakeinstall/usr/lib32/libVkLayer_*.so
 
-  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
+  install -m644 -Dt "${pkgdir}/usr/lib/steamos/mesa/share/licenses/${pkgname}" LICENSE
 }
 
-package_lib32-opencl-mesa() {
+package_lib32-opencl-mesa-unstable() {
   pkgdesc="OpenCL support for AMD/ATI Radeon mesa drivers (32-bit)"
   depends=('lib32-expat' 'lib32-libdrm' 'lib32-libelf' 'lib32-clang' 'lib32-zstd' 'opencl-mesa')
   optdepends=('opencl-headers: headers necessary for OpenCL development')
@@ -139,10 +137,10 @@ package_lib32-opencl-mesa() {
   _install fakeinstall/usr/lib32/lib*OpenCL*
   _install fakeinstall/usr/lib32/gallium-pipe
 
-  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
+  install -m644 -Dt "${pkgdir}/usr/lib/steamos/mesa/share/licenses/${pkgname}" LICENSE
 }
 
-package_lib32-vulkan-intel() {
+package_lib32-vulkan-intel-unstable() {
   pkgdesc="Intel's Vulkan mesa driver (32-bit)"
   depends=('lib32-wayland' 'lib32-libx11' 'lib32-libxshmfence' 'lib32-libdrm' 'lib32-zstd'
            'lib32-systemd')
@@ -152,10 +150,10 @@ package_lib32-vulkan-intel() {
   _install fakeinstall/usr/share/vulkan/icd.d/intel_icd*.json
   _install fakeinstall/usr/lib32/libvulkan_intel.so
 
-  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
+  install -m644 -Dt "${pkgdir}/usr/lib/steamos/mesa/share/licenses/${pkgname}" LICENSE
 }
 
-package_lib32-vulkan-radeon() {
+package_lib32-vulkan-radeon-unstable() {
   pkgdesc="Radeon's Vulkan mesa driver (32-bit)"
   depends=('lib32-wayland' 'lib32-libx11' 'lib32-libxshmfence' 'lib32-libelf' 'lib32-libdrm'
            'lib32-zstd' 'lib32-llvm-libs' 'lib32-systemd')
@@ -165,30 +163,30 @@ package_lib32-vulkan-radeon() {
   _install fakeinstall/usr/share/vulkan/icd.d/radeon_icd*.json
   _install fakeinstall/usr/lib32/libvulkan_radeon.so
 
-  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
+  install -m644 -Dt "${pkgdir}/usr/lib/steamos/mesa/share/licenses/${pkgname}" LICENSE
 }
 
-package_lib32-libva-mesa-driver() {
+package_lib32-libva-mesa-driver-unstable() {
   pkgdesc="VA-API implementation for gallium (32-bit)"
   depends=('lib32-libdrm' 'lib32-libx11' 'lib32-llvm-libs' 'lib32-expat' 'lib32-libelf'
            'lib32-libxshmfence' 'lib32-zstd')
 
   _install fakeinstall/usr/lib32/dri/*_drv_video.so
 
-  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
+  install -m644 -Dt "${pkgdir}/usr/lib/steamos/mesa/share/licenses/${pkgname}" LICENSE
 }
 
-package_lib32-mesa-vdpau() {
+package_lib32-mesa-vdpau-unstable() {
   pkgdesc="Mesa VDPAU drivers (32-bit)"
   depends=('lib32-libdrm' 'lib32-libx11' 'lib32-llvm-libs' 'lib32-expat' 'lib32-libelf'
            'lib32-libxshmfence' 'lib32-zstd')
 
   _install fakeinstall/usr/lib32/vdpau
 
-  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
+  install -m644 -Dt "${pkgdir}/usr/lib/steamos/mesa/share/licenses/${pkgname}" LICENSE
 }
 
-package_lib32-mesa() {
+package_lib32-mesa-unstable() {
   depends=('lib32-libdrm' 'lib32-wayland' 'lib32-libxxf86vm' 'lib32-libxdamage' 'lib32-libxshmfence'
            'lib32-libelf' 'lib32-libunwind' 'lib32-llvm-libs' 'lib32-lm_sensors' 'lib32-libglvnd'
            'lib32-zstd' 'lib32-vulkan-icd-loader' 'mesa')
@@ -196,9 +194,6 @@ package_lib32-mesa() {
   optdepends=('opengl-man-pages: for the OpenGL API man pages'
               'lib32-mesa-vdpau: for accelerated video playback'
               'lib32-libva-mesa-driver: for accelerated video playback')
-  provides=('lib32-mesa-libgl' 'lib32-opengl-driver')
-  conflicts=('lib32-mesa-libgl')
-  replaces=('lib32-mesa-libgl')
 
   rm -rv fakeinstall/usr/share/drirc.d/00-mesa-defaults.conf
   rm -rv fakeinstall/usr/share/glvnd/egl_vendor.d/50_mesa.json
@@ -222,10 +217,10 @@ package_lib32-mesa() {
   _install fakeinstall/usr/lib32/libEGL_mesa.so*
 
   # indirect rendering
-  ln -s /usr/lib32/libGLX_mesa.so.0 "${pkgdir}/usr/lib32/libGLX_indirect.so.0"
+  ln -s /usr/lib32/libGLX_mesa.so.0 "${pkgdir}/usr/lib/steamos/mesa/lib32/libGLX_indirect.so.0"
 
   # make sure there are no files left to install
   find fakeinstall -depth -print0 | xargs -0 rmdir
 
-  install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" LICENSE
+  install -m644 -Dt "${pkgdir}/usr/lib/steamos/mesa/share/licenses/${pkgname}" LICENSE
 }
