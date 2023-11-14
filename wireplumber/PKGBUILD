@@ -3,7 +3,7 @@
 
 pkgbase=wireplumber
 pkgname=(wireplumber wireplumber-docs)
-_tag=0.4.14.dev21
+_tag=0.4.14-dev22
 pkgver=${_tag//-/.}
 pkgrel=1
 pkgdesc="Session / policy manager implementation for PipeWire"
