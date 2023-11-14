@@ -3,8 +3,8 @@
 
 pkgbase=wireplumber
 pkgname=(wireplumber wireplumber-docs)
-_commit=a8a20f42f1482e60717d7875dd215197fc50bc99  # tags/0.4.14-dev12-dv
-pkgver=0.4.14.dev12.dv
+_tag=0.4.14.dev21
+pkgver=${_tag//-/.}
 pkgrel=1
 pkgdesc="Session / policy manager implementation for PipeWire"
 url="https://pipewire.pages.freedesktop.org/wireplumber/"
@@ -16,7 +16,7 @@ makedepends=(git meson doxygen graphviz 'pipewire>=0.3.43' systemd glib2 lua
              # In individual package dependencies below, but needs to be installed at build time for the check() step.
              pipewire-audio)
 options=(debug)
-source=("$pkgbase::git+https://github.com/evlav/wireplumber.git#commit=$_commit")
+source=("$pkgbase::git+https://github.com/evlav/wireplumber.git#tag=$_tag")
 sha256sums=('SKIP')
 
 pkgver() {
