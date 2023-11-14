@@ -3,16 +3,16 @@
 # This is just for the Gamescope WSI layer.
 
 pkgname=lib32-gamescope
-_srctag=3.11.52-beta2
+_srctag=3.13.0
 pkgver=${_srctag//-/.}
-pkgrel=1
+pkgrel=2
 pkgdesc="gaming shell based on Xwayland, powered by Vulkan and DRM (32-bit)"
 arch=(x86_64)
 url="https://github.com/Plagman/gamescope"
 license=('MIT')
 depends=('lib32-wayland' 'lib32-libx11' 'lib32-libxcb' 'lib32-vulkan-icd-loader')
-makedepends=(git meson cmake ninja vulkan-headers)
-source=("lib32-gamescope::git+https://github.com/Plagman/gamescope.git#tag=$_srctag")
+makedepends=(openssh git meson cmake wayland-protocols ninja glslang glm vulkan-headers lib32-glm)
+source=("lib32-gamescope::git+https://github.com/ValveSoftware/gamescope.git#tag=$_srctag")
 sha256sums=('SKIP')
 
 prepare() {
@@ -22,14 +22,14 @@ prepare() {
 build() {
 	cd "$pkgname"
 
-  	export CC="gcc -m32"
-  	export CXX="g++ -m32"
-  	export PKG_CONFIG="i686-pc-linux-gnu-pkg-config"
+	export CC="gcc -m32"
+	export CXX="g++ -m32"
+	export PKG_CONFIG="i686-pc-linux-gnu-pkg-config"
 
 	rm -rf build
 	mkdir build
 	cd build
-	arch-meson --libdir=/usr/lib32 -Denable_gamescope=false -Denable_openvr_support=false -Dpipewire=disabled --buildtype release --prefix /usr ..
+	arch-meson --libdir=/usr/lib32 -Denable_gamescope=false -Denable_gamescope_wsi_layer=true -Denable_openvr_support=false -Dpipewire=disabled --buildtype release --prefix /usr ..
 	ninja
 }
 
