@@ -5,9 +5,8 @@ pkgbase=wireplumber
 pkgname=(
   wireplumber
   libwireplumber
-  wireplumber-docs
 )
-_tag=0.5.0
+_tag=0.5.2-jupiter1
 pkgver=${_tag//-/.}
 pkgrel=1
 pkgdesc="Session / policy manager implementation for PipeWire"
@@ -35,7 +34,7 @@ makedepends=(
 )
 checkdepends=('pipewire-audio>=1:1.0.3')
 options=(debug)
-source=("git+https://gitlab.freedesktop.org/pipewire/$pkgbase.git#tag=$_tag")
+source=("git+https://github.com/evlav/wireplumber.git#tag=$_tag")
 sha256sums=('SKIP')
 
 pkgver() {
@@ -51,6 +50,7 @@ build() {
   local meson_options=(
     -D elogind=disabled
     -D system-lua=true
+    -D doc=disabled # HOLO: Fails due to some locale gubbins -- disable.
   )
 
   arch-meson $pkgbase build "${meson_options[@]}"
@@ -122,14 +122,6 @@ package_libwireplumber() {
   provides=(libwireplumber-$_ver.so)
 
   mv libw/* "$pkgdir"
-
-  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 $pkgbase/LICENSE
-}
-
-package_wireplumber-docs() {
-  pkgdesc+=" - documentation"
-
-  mv docs/* "$pkgdir"
 
   install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 $pkgbase/LICENSE
 }
