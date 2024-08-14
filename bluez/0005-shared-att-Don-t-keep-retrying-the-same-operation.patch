@@ -1,0 +1,47 @@
+From 9bfe515e0a9d86fda143035766f8fe5b60d4293d Mon Sep 17 00:00:00 2001
+From: Luiz Augusto von Dentz <luiz.von.dentz@intel.com>
+Date: Tue, 3 Oct 2023 11:40:42 -0700
+Subject: [PATCH 2/2] shared/att: Don't keep retrying the same operation
+
+If an operation has been retried already don't attempt to change the
+security again.
+---
+ src/shared/att.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/shared/att.c b/src/shared/att.c
+index f7bef08bc..65203df59 100644
+--- a/src/shared/att.c
++++ b/src/shared/att.c
+@@ -193,6 +193,7 @@ struct att_send_op {
+ 	uint8_t opcode;
+ 	void *pdu;
+ 	uint16_t len;
++	bool retry;
+ 	bt_att_response_func_t callback;
+ 	bt_att_destroy_func_t destroy;
+ 	void *user_data;
+@@ -785,6 +786,12 @@ static bool handle_error_rsp(struct bt_att_chan *chan, uint8_t *pdu,
+ 
+ 	*opcode = rsp->opcode;
+ 
++	/* If operation has already been marked as retry don't attempt to change
++	 * the security again.
++	 */
++	if (op->retry)
++		return false;
++
+ 	/* Attempt to change security */
+ 	if (!change_security(chan, rsp->ecode))
+ 		return false;
+@@ -798,6 +805,7 @@ static bool handle_error_rsp(struct bt_att_chan *chan, uint8_t *pdu,
+ 	DBG(att, "(chan %p) Retrying operation %p", chan, op);
+ 
+ 	chan->pending_req = NULL;
++	op->retry = true;
+ 
+ 	/* Push operation back to request queue */
+ 	return queue_push_head(att->req_queue, op);
+-- 
+2.46.0
+

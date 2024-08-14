@@ -1,0 +1,206 @@
+From 8696ff771aeea2ed8de72ad91d30704f8339fe35 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20Danis?= <frederic.danis@collabora.com>
+Date: Mon, 22 Jan 2024 15:34:30 +0100
+Subject: [PATCH] device: Update local and remote CSRK on management event
+
+Currently the local and remote CSRK keys are only loaded to device object
+from storage during start.
+Those keys are updated on MGMT_EV_NEW_CSRK event only in adapter object,
+but saved both in adapter and device objects.
+
+Those keys should be updated on management event to be able to perform
+signed write for GAP/SEC/CSIGN/BV-01-C and GAP/SEC/CSIGN/BV-02-C.
+
+This commits updates the keys on management event in the device object and
+move their storage to device object only.
+---
+ src/adapter.c | 77 +--------------------------------------------------
+ src/device.c  | 48 ++++++++++++++++++++++++++++++++
+ src/device.h  |  3 ++
+ 3 files changed, 52 insertions(+), 76 deletions(-)
+
+diff --git a/src/adapter.c b/src/adapter.c
+index 8fb2acdc8..4efeeeacd 100644
+--- a/src/adapter.c
++++ b/src/adapter.c
+@@ -8662,75 +8662,6 @@ static void new_long_term_key_callback(uint16_t index, uint16_t length,
+ 	bonding_complete(adapter, &addr->bdaddr, addr->type, 0);
+ }
+ 
+-static void store_csrk(struct btd_adapter *adapter, const bdaddr_t *peer,
+-				uint8_t bdaddr_type, const unsigned char *key,
+-				uint32_t counter, uint8_t type)
+-{
+-	const char *group;
+-	char device_addr[18];
+-	char filename[PATH_MAX];
+-	GKeyFile *key_file;
+-	GError *gerr = NULL;
+-	char key_str[33];
+-	gsize length = 0;
+-	gboolean auth;
+-	char *str;
+-	int i;
+-
+-	switch (type) {
+-	case 0x00:
+-		group = "LocalSignatureKey";
+-		auth = FALSE;
+-		break;
+-	case 0x01:
+-		group = "RemoteSignatureKey";
+-		auth = FALSE;
+-		break;
+-	case 0x02:
+-		group = "LocalSignatureKey";
+-		auth = TRUE;
+-		break;
+-	case 0x03:
+-		group = "RemoteSignatureKey";
+-		auth = TRUE;
+-		break;
+-	default:
+-		warn("Unsupported CSRK type %u", type);
+-		return;
+-	}
+-
+-	ba2str(peer, device_addr);
+-
+-	create_filename(filename, PATH_MAX, "/%s/%s/info",
+-			btd_adapter_get_storage_dir(adapter), device_addr);
+-
+-	key_file = g_key_file_new();
+-	if (!g_key_file_load_from_file(key_file, filename, 0, &gerr)) {
+-		error("Unable to load key file from %s: (%s)", filename,
+-								gerr->message);
+-		g_clear_error(&gerr);
+-	}
+-
+-	for (i = 0; i < 16; i++)
+-		sprintf(key_str + (i * 2), "%2.2X", key[i]);
+-
+-	g_key_file_set_string(key_file, group, "Key", key_str);
+-	g_key_file_set_integer(key_file, group, "Counter", counter);
+-	g_key_file_set_boolean(key_file, group, "Authenticated", auth);
+-
+-	create_file(filename, 0600);
+-
+-	str = g_key_file_to_data(key_file, &length, NULL);
+-	if (!g_file_set_contents(filename, str, length, &gerr)) {
+-		error("Unable set contents for %s: (%s)", filename,
+-								gerr->message);
+-		g_error_free(gerr);
+-	}
+-	g_free(str);
+-
+-	g_key_file_free(key_file);
+-}
+-
+ static void new_csrk_callback(uint16_t index, uint16_t length,
+ 					const void *param, void *user_data)
+ {
+@@ -8758,13 +8689,7 @@ static void new_csrk_callback(uint16_t index, uint16_t length,
+ 		return;
+ 	}
+ 
+-	if (!ev->store_hint)
+-		return;
+-
+-	store_csrk(adapter, &key->addr.bdaddr, key->addr.type, key->val, 0,
+-								key->type);
+-
+-	btd_device_set_temporary(device, false);
++	device_set_csrk(device, key->val, 0, key->type, ev->store_hint);
+ }
+ 
+ static void store_irk(struct btd_adapter *adapter, const bdaddr_t *peer,
+diff --git a/src/device.c b/src/device.c
+index 995d39f2c..813d08d65 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -162,6 +162,7 @@ struct bearer_state {
+ struct csrk_info {
+ 	uint8_t key[16];
+ 	uint32_t counter;
++	bool auth;
+ };
+ 
+ enum {
+@@ -384,6 +385,7 @@ static void store_csrk(struct csrk_info *csrk, GKeyFile *key_file,
+ 
+ 	g_key_file_set_string(key_file, group, "Key", key);
+ 	g_key_file_set_integer(key_file, group, "Counter", csrk->counter);
++	g_key_file_set_boolean(key_file, group, "Authenticated", csrk->auth);
+ }
+ 
+ static gboolean store_device_info_cb(gpointer user_data)
+@@ -1798,6 +1800,52 @@ void device_set_ltk_enc_size(struct btd_device *device, uint8_t enc_size)
+ 	bt_att_set_enc_key_size(device->att, device->ltk_enc_size);
+ }
+ 
++void device_set_csrk(struct btd_device *device, const uint8_t val[16],
++				uint32_t counter, uint8_t type,
++				bool store_hint)
++{
++	struct csrk_info **handle;
++	struct csrk_info *csrk;
++	bool auth;
++
++	switch (type) {
++	case 0x00:
++		handle = &device->local_csrk;
++		auth = FALSE;
++		break;
++	case 0x01:
++		handle = &device->remote_csrk;
++		auth = FALSE;
++		break;
++	case 0x02:
++		handle = &device->local_csrk;
++		auth = TRUE;
++		break;
++	case 0x03:
++		handle = &device->remote_csrk;
++		auth = TRUE;
++		break;
++	default:
++		warn("Unsupported CSRK type %u", type);
++		return;
++	}
++
++	if (!*handle)
++		*handle = g_new0(struct csrk_info, 1);
++
++	csrk = *handle;
++	memcpy(csrk->key, val, sizeof(csrk->key));
++	csrk->counter = counter;
++	csrk->auth = auth;
++
++	if (!store_hint)
++		return;
++
++	store_device_info(device);
++
++	btd_device_set_temporary(device, false);
++}
++
+ static void device_set_auto_connect(struct btd_device *device, gboolean enable)
+ {
+ 	char addr[18];
+diff --git a/src/device.h b/src/device.h
+index 9e81fda9e..b1f226ca7 100644
+--- a/src/device.h
++++ b/src/device.h
+@@ -129,6 +129,9 @@ void device_remove_connection(struct btd_device *device, uint8_t bdaddr_type,
+ void device_request_disconnect(struct btd_device *device, DBusMessage *msg);
+ bool device_is_disconnecting(struct btd_device *device);
+ void device_set_ltk_enc_size(struct btd_device *device, uint8_t enc_size);
++void device_set_csrk(struct btd_device *device, const uint8_t val[16],
++				uint32_t counter, uint8_t type,
++				bool store_hint);
+ 
+ void device_store_svc_chng_ccc(struct btd_device *device, uint8_t bdaddr_type,
+ 								uint16_t value);
+-- 
+2.46.0
+
