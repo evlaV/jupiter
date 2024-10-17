@@ -9,12 +9,12 @@ pkgbase=mesa
 #  - drop opencl-mesa - unnecessary and requires to install more dependencies
 pkgname=('vulkan-mesa-layers' 'vulkan-intel' 'vulkan-swrast' 'libva-mesa-driver' 'mesa-vdpau' 'mesa')
 pkgdesc="An open-source implementation of the OpenGL specification"
-_tag=radeonsi-24.0.4
-pkgver=24.0.5.183660.radeonsi_24.0.4
-pkgrel=1
+# 24.0.4 is a 32-bit only fix. Skipping for 64-bit to save recompilation.
+_tag=radeonsi-24.0.3
+pkgver=24.0.5.183659.radeonsi_24.0.3
+pkgrel=3
 arch=('x86_64')
 makedepends=('git' 'openssh' 'python-mako' 'libxml2' 'libx11' 'xorgproto' 'libdrm' 'libxshmfence' 'libxxf86vm'
-             'python>=3.11' 'python<3.12'
              'libxdamage' 'libvdpau' 'libva' 'wayland' 'wayland-protocols' 'zstd' 'elfutils' 'llvm'
              'libomxil-bellagio' 'libclc' 'clang' 'libglvnd' 'libunwind' 'lm_sensors' 'libxrandr'
              'systemd' 'valgrind' 'glslang' 'vulkan-icd-loader' 'directx-headers' 'cmake' 'meson')
@@ -103,7 +103,7 @@ _install() {
 
 package_vulkan-mesa-layers() {
   pkgdesc="Mesa's Vulkan layers"
-  depends=('libdrm' 'libxcb' 'wayland' 'python>=3.11' 'python<3.12')
+  depends=('libdrm' 'libxcb' 'wayland' 'python')
   conflicts=('vulkan-mesa-layer')
   replaces=('vulkan-mesa-layer')
 
