@@ -11,12 +11,12 @@ pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
 # When updating the tag, consider if you are adding any shader compiler changes. If so,
 # or if you are not sure, regenerate the radv-build-id below. To update, see
 # https://github.com/evlav/docs/-/wikis/How-to-make-a-new-Mesa-release#updating-the-radv-build-id
-_tag=steamos-24.4.3
-pkgver=24.1.0_devel.188129.steamos_24.4.3
+_tag=steamos-24.11.0
+pkgver=24.3.0_devel.197194.steamos_24.11.0
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'openssh' 'python-mako' 'lib32-libxml2' 'lib32-expat' 'lib32-libx11' 'xorgproto' 'lib32-libdrm'
-             'python>=3.11' 'python<3.12'
+             'python>=3.11' 'python<3.12' 'python-yaml'
              'lib32-libxshmfence'
              'lib32-wayland' 'wayland-protocols' 'lib32-zstd' 'lib32-libelf'
              'lib32-llvm' 'lib32-libunwind'
@@ -80,12 +80,11 @@ END
     -D android-libbacktrace=disabled \
     -D vulkan-drivers=amd \
     -D vulkan-layers= \
-    -D dri3=enabled \
     -D egl=disabled \
     -D gbm=disabled \
     -D gles1=disabled \
     -D gles2=disabled \
-    -D glvnd=false \
+    -D glvnd=disabled \
     -D glx=disabled \
     -D libunwind=enabled \
     -D llvm=enabled \
@@ -94,7 +93,7 @@ END
     -D microsoft-clc=disabled \
     -D valgrind=disabled \
     -D intel-rt=disabled \
-    -D radv-build-id="33b2f702c2e8a14d5b76f98ab629e74fb06aa55d"
+    -D radv-build-id="4a55c2665669a166cda2a6d60fbce33d8353876d"
 
   # Print config
   meson configure build
