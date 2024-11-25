@@ -18,7 +18,7 @@ _commit=0f851df6c2f85c7f64b7cb680f53d0c57e21ae97
 _minor_version=27
 _pkgver=1.${_minor_version}
 pkgver=1.27.r3.g0f851df
-pkgrel=1
+pkgrel=2
 
 pkgdesc="OpenGL and Vulkan debugging tool (minimal, capture-only, 32-bit)"
 arch=(x86_64)
