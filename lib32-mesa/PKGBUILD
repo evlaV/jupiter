@@ -9,17 +9,18 @@ pkgbase=lib32-mesa
 #  - drop lib32-opencl-mesa - unnecessary and requires to install more dependencies
 pkgname=('lib32-vulkan-mesa-layers' 'lib32-vulkan-intel' 'lib32-libva-mesa-driver' 'lib32-mesa-vdpau' 'lib32-mesa')
 pkgdesc="An open-source implementation of the OpenGL specification (32-bit)"
-_tag=radeonsi-24.0.4
-pkgver=24.0.5.183660.radeonsi_24.0.4
-pkgrel=1.2
+_tag=radeonsi-24.3.4
+pkgver=24.3.4.197725.radeonsi_24.3.4
+pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'openssh' 'python-mako' 'python-packaging' 'lib32-libxml2' 'lib32-expat' 'lib32-libx11' 'xorgproto' 'lib32-libdrm'
-             'python>=3.13' 'python<3.14'
+             'python>=3.13' 'python<3.14' 'python-ply' 'python-yaml'
              'lib32-libxshmfence' 'lib32-libxxf86vm' 'lib32-libxdamage' 'lib32-libvdpau'
              'lib32-libva' 'lib32-wayland' 'wayland-protocols' 'lib32-zstd' 'lib32-libelf'
              'lib32-llvm' 'libclc' 'clang' 'lib32-clang' 'lib32-libglvnd' 'lib32-libunwind'
              'lib32-lm_sensors' 'lib32-libxrandr' 'lib32-vulkan-icd-loader' 'lib32-systemd'
-             'glslang' 'cmake' 'meson' 'bison' 'flex')
+             'glslang' 'cmake' 'meson' 'bison' 'flex'
+             'lib32-spirv-llvm-translator')
 url="https://www.mesa3d.org/"
 license=('custom')
 options=('debug' '!lto')
@@ -70,11 +71,9 @@ END
     -D gallium-drivers=radeonsi,swrast,zink \
     -D vulkan-drivers=intel \
     -D vulkan-layers=device-select,intel-nullhw,overlay \
-    -D dri3=enabled \
     -D egl=enabled \
     -D gallium-extra-hud=true \
     -D gallium-nine=true \
-    -D gallium-omx=disabled \
     -D gallium-opencl=disabled \
     -D gallium-va=enabled \
     -D gallium-vdpau=enabled \
@@ -83,7 +82,7 @@ END
     -D gbm=enabled \
     -D gles1=disabled \
     -D gles2=enabled \
-    -D glvnd=true \
+    -D glvnd=enabled \
     -D glx=dri \
     -D libunwind=enabled \
     -D llvm=enabled \
@@ -92,6 +91,7 @@ END
     -D shared-glapi=enabled \
     -D microsoft-clc=disabled \
     -D video-codecs=vc1dec,h264dec,h264enc,h265dec,h265enc \
+    -D intel-rt=disabled \
     -D valgrind=disabled
 
   # Print config
@@ -194,7 +194,6 @@ package_lib32-mesa() {
   # ati-dri, nouveau-dri, intel-dri, svga-dri, swrast, swr
   _install fakeinstall/usr/lib32/dri/*_dri.so
 
-  #_install fakeinstall/usr/lib32/bellagio
   _install fakeinstall/usr/lib32/d3d
   _install fakeinstall/usr/lib32/lib{gbm,glapi}.so*
   _install fakeinstall/usr/lib32/libOSMesa.so*
@@ -208,6 +207,9 @@ package_lib32-mesa() {
   # libglvnd support
   _install fakeinstall/usr/lib32/libGLX_mesa.so*
   _install fakeinstall/usr/lib32/libEGL_mesa.so*
+
+  _install fakeinstall/usr/lib32/gbm/dri_gbm.so
+  _install fakeinstall/usr/lib32/libgallium-*.so
 
   # indirect rendering
   ln -s /usr/lib32/libGLX_mesa.so.0 "${pkgdir}/usr/lib32/libGLX_indirect.so.0"
