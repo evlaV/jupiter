@@ -18,7 +18,7 @@ _commit=0f851df6c2f85c7f64b7cb680f53d0c57e21ae97
 _minor_version=27
 _pkgver=1.${_minor_version}
 pkgver=1.27.r3.g0f851df
-pkgrel=2
+pkgrel=3
 
 pkgdesc="OpenGL and Vulkan debugging tool (minimal, capture-only, 32-bit)"
 arch=(x86_64)
@@ -28,9 +28,15 @@ makedepends=("git" "cmake" "python")
 depends=("lib32-libx11" "lib32-libxcb" "lib32-mesa" "lib32-libgl" "lib32-xcb-util-keysyms")
 provides=("lib32-renderdoc")
 conflicts=("lib32-renderdoc")
-source=("renderdoc::git+https://github.com/baldurk/renderdoc.git#commit=${_commit}")
+source=("renderdoc::git+https://github.com/baldurk/renderdoc.git#commit=${_commit}"
+
+        # Holo: backport fix for cmake 4.0
+        # Can be removed when bumping renderdoc to 1.38+
+        4af5b2752138f004631344cc43a411a38c1e1e2e.patch
+)
 validpgpkeys=('1B039DB9A4718A2D699DE031AC612C3120C34695')
-sha384sums=('SKIP')
+sha384sums=('faa107c61a350a2deb283e88ce4d42ef9c51d8ed75bf696fb3e06357f3801749d26ceb5df983645586661313dfb65d06'
+            'a4612d44f1124552bd24814cc124e3b8272d82e446c797abf627add5a94205b25740607a2e2b3fef929bce1fd6b6e6f1')
 
 pkgver() {
   cd renderdoc
@@ -42,6 +48,9 @@ prepare() {
   # but we want this package to be compatible with v1.27 stable UI clients.
   cd renderdoc
   sed -i renderdoc/api/replay/version.h -e "s/RENDERDOC_VERSION_MINOR .*$/RENDERDOC_VERSION_MINOR ${_minor_version}/"
+
+  # Holo
+  patch -p1 -d "${srcdir}/renderdoc" -i "$srcdir/4af5b2752138f004631344cc43a411a38c1e1e2e.patch"
 }
 
 build() {
