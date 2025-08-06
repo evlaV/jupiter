@@ -5,7 +5,7 @@ pkgbase=linux-firmware-neptune
 pkgname=(linux-firmware-neptune-whence linux-firmware-neptune  amd-ucode-neptune
          linux-firmware-neptune-{nfp,mellanox,marvell,qcom,liquidio,qlogic,bnx2x}
 )
-_tag=jupiter-20250701.1
+_tag=jupiter-20250731.1
 pkgver=${_tag//-/.}
 pkgrel=2
 pkgdesc="Firmware files for Linux"
@@ -98,6 +98,8 @@ package_linux-firmware-neptune() {
   ZSTD_CLEVEL=19 make DESTDIR="${pkgdir}" FIRMWAREDIR=/usr/lib/firmware install-zst
 
   # holo: compat with older jupiter kernels
+  # XXX: Upstream firmware renamed these, but the upstream *driver* didn't use the new name yet.  As of when this
+  #      workaround was added upstreaming was still in progress, so ensure that happened before removing this.
   ln -s QCA2066 ${pkgdir}/usr/lib/firmware/ath11k/QCA206X
   ln -s cirrus/cs35l41-dsp1-spk-prot-vlv1776.wmfw.zst ${pkgdir}/usr/lib/firmware/cs35l41-dsp1-spk-prot.wmfw.zst
   ln -s cirrus/cs35l41-dsp1-spk-prot-vlv1776.bin.zst ${pkgdir}/usr/lib/firmware/cs35l41-dsp1-spk-prot.bin.zst
