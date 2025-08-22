@@ -20,9 +20,9 @@ pkgname=(
 #  lib32-vulkan-virtio
   lib32-vulkan-mesa-layers
 )
-_tag=radeonsi-25.1.5
-pkgver=25.1.4.204699.radeonsi_25.1.5
-pkgrel=1.1
+_tag=radeonsi-25.2.0
+pkgver=25.2.0.208938.radeonsi_25.2.0
+pkgrel=1
 epoch=0
 pkgdesc="Open-source OpenGL drivers - 32-bit"
 url="https://www.mesa3d.org/"
@@ -195,7 +195,6 @@ build() {
     -D gallium-drivers=radeonsi,llvmpipe,zink,iris,i915
     -D gallium-extra-hud=true
     -D gallium-rusticl=false
-    -D gallium-xa=disabled
     -D gles1=disabled
     -D html-docs=disabled
     -D libunwind=disabled
@@ -204,8 +203,9 @@ build() {
     -D video-codecs=all
     -D vulkan-drivers=intel,swrast
     -D vulkan-layers=device-select,intel-nullhw,overlay,screenshot,vram-report-limit
-    -D gallium-opencl=disabled
-    -D radeonsi-build-id=574238d9f8cef67c9e3c7fa28fb5aa4f068767bd
+    -D intel-rt=disabled
+    -D gallium-mediafoundation=disabled
+    -D radeonsi-build-id=81a54f29606e32cf945d50e91b48bdde211a4117
   )
 
   # Build only minimal debug info to reduce size
