@@ -22,8 +22,8 @@ pkgname=(
 # When updating the tag, consider if you are adding any shader compiler changes. If so,
 # or if you are not sure, regenerate the radv-build-id below. To update, see
 # https://github.com/evlav/docs/-/wikis/How-to-make-a-new-Mesa-release#updating-the-radv-build-id
-_tag=steamos-25.6.0
-pkgver=25.2.0_devel.206774.steamos_25.6.0
+_tag=steamos-25.8.0
+pkgver=25.3.0_devel.210207.steamos_25.8.0
 
 pkgrel=2
 epoch=0
@@ -210,7 +210,8 @@ build() {
     -D valgrind=disabled
     -D video-codecs=all
     -D vulkan-drivers=amd
-    -D vulkan-layers=
+    -D vulkan-layers=anti-lag
+    -D intel-rt=disabled
     # Jupiter specific options below:
     -D b_lto=false
     -D gallium-vdpau=disabled
@@ -224,7 +225,9 @@ build() {
     -D llvm=enabled
     -D lmsensors=disabled
     -D gpuvis=true
-    -D radv-build-id="993b3621e02e2223c7b3fcefb4e91e2f542ce7fb"
+    -D display-info=disabled
+    -D amdgpu-virtio=true
+    -D radv-build-id="801de219a880bb288aa700832ecb5d357f40e58e"
   )
 
   export BINDGEN_EXTRA_CLANG_ARGS="-m32"
@@ -506,11 +509,13 @@ package_lib32-vulkan-radeon() {
 #  install -Dm644 mesa-$pkgver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
 
   # Jupiter specific: install libvulkan_radeon.so and radeon_icd.i686.json but
-  # remove the drirc files which are already installed by mesa/mesa-radv.
+  # remove the drirc files/layer files which are already installed by
+  # mesa/mesa-radv.
   meson install -C build --destdir "$pkgdir"
 
   rm -rv "$pkgdir"/usr/share/drirc.d/00-mesa-defaults.conf
   rm -rv "$pkgdir"/usr/share/drirc.d/00-radv-defaults.conf
+  rm -rv "$pkgdir"/usr/share/vulkan/implicit_layer.d/VkLayer_MESA_anti_lag.json
 
   install -Dm644 jupiter-mesa/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
 }
