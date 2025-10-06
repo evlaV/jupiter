@@ -22,7 +22,7 @@ pkgname=(
 )
 _tag=radeonsi-25.2.0
 pkgver=25.2.0.208938.radeonsi_25.2.0
-pkgrel=1
+pkgrel=2
 epoch=0
 pkgdesc="Open-source OpenGL drivers - 32-bit"
 url="https://www.mesa3d.org/"
@@ -205,6 +205,7 @@ build() {
     -D vulkan-layers=device-select,intel-nullhw,overlay,screenshot,vram-report-limit
     -D intel-rt=disabled
     -D gallium-mediafoundation=disabled
+    -D amdgpu-virtio=true
     -D radeonsi-build-id=81a54f29606e32cf945d50e91b48bdde211a4117
   )
 
