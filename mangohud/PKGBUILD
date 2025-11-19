@@ -3,7 +3,7 @@
 
 pkgname=('mangohud' 'lib32-mangohud')
 pkgver=0.8.1.r103.g10479eb
-pkgrel=1
+pkgrel=2
 pkgdesc="Vulkan and OpenGL overlay to display performance information"
 url="https://github.com/flightlessmango/MangoHud"
 arch=(x86_64)
@@ -37,6 +37,7 @@ source=(
   "vulkan-headers-1.2.158-2-wrap.zip::https://wrapdb.mesonbuild.com/v2/vulkan-headers_1.2.158-2/get_patch"
   "implot-v0.16.zip::https://github.com/epezent/implot/archive/refs/tags/v0.16.zip"
   "implot-v0.16-1-wrap.zip::https://wrapdb.mesonbuild.com/v2/implot_0.16-1/get_patch"
+  "0001-Revert-cpu-init-power-retry-until-GPUs-is-inited.patch"
 )
 
 sha256sums=('SKIP'
@@ -47,7 +48,8 @@ sha256sums=('SKIP'
             '53361271cfe274df8782e1e47bdc9e61b7af432ba30acbfe31723f9df2c257f3'
             '860358cf5e73f458cd1e88f8c38116d123ab421d5ce2e4129ec38eaedd820e17'
             '24f772c688f6b8a6e19d7efc10e4923a04a915f13d487b08b83553aa62ae1708'
-            '1c6b1462066a5452fa50c1da1dd47fed841f28232972c82d778f2962936568c7')
+            '1c6b1462066a5452fa50c1da1dd47fed841f28232972c82d778f2962936568c7'
+            'ae61b5e6dfc4ffa5733c32c5237c16b5f08d2fd79fe89e900c9344feeac2339a')
 
 pkgver() {
   cd mangohud
@@ -56,7 +58,9 @@ pkgver() {
 
 prepare() {
   cd mangohud
-
+  # reverts "cpu: init power: retry until GPUs is inited"
+  # this fixes missing cpu power reading.
+  patch -Np1 -i "$srcdir/0001-Revert-cpu-init-power-retry-until-GPUs-is-inited.patch"
   # meson subprojects
   ln -sv "$srcdir/imgui-1.89.9" subprojects
   ln -sv "$srcdir/spdlog-1.14.1" subprojects

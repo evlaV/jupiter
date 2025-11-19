@@ -1,0 +1,60 @@
+From 57e0f469fc565065628410b35aa96c99eb25b937 Mon Sep 17 00:00:00 2001
+From: flightlessmango <flightlessmangoyt@gmail.com>
+Date: Thu, 13 Nov 2025 19:31:08 +0100
+Subject: [PATCH] Revert "cpu: init power: retry until GPUs is inited"
+
+This reverts commit 55b1bcdfe5d02ba2fb5fde41478b24f1b83b0421.
+---
+ src/cpu.cpp     | 12 ------------
+ src/overlay.cpp |  5 +++++
+ 2 files changed, 5 insertions(+), 12 deletions(-)
+
+diff --git a/src/cpu.cpp b/src/cpu.cpp
+index fc5067e..de88440 100644
+--- a/src/cpu.cpp
++++ b/src/cpu.cpp
+@@ -699,11 +699,6 @@ static CPUPowerData_rapl* init_cpu_power_data_rapl(const std::string path) {
+     if (!file_exists(energyCounterPath)) return nullptr;
+ 
+     powerData->energyCounterFile = fopen(energyCounterPath.c_str(), "r");
+-    if (!powerData->energyCounterFile) {
+-        SPDLOG_DEBUG("Rapl: energy_uj is not accessible");
+-        powerData->energyCounterFile = nullptr;
+-        return nullptr;
+-    }
+ 
+     return powerData.release();
+ }
+@@ -724,13 +719,6 @@ bool CPUStats::InitCpuPowerData() {
+     if(m_cpuPowerData != nullptr)
+         return true;
+ 
+-    // only try to find a valid method 5 times
+-    static int retries = 0;
+-    if (retries >= 5)
+-        return true;
+-
+-    retries++;
+-    
+     std::string name, path;
+     std::string hwmon = "/sys/class/hwmon/";
+ 
+diff --git a/src/overlay.cpp b/src/overlay.cpp
+index b531109..7a7981e 100644
+--- a/src/overlay.cpp
++++ b/src/overlay.cpp
+@@ -755,6 +755,11 @@ void init_cpu_stats(overlay_params& params)
+                            && enabled[OVERLAY_PARAM_ENABLED_cpu_stats];
+    enabled[OVERLAY_PARAM_ENABLED_cpu_temp] = cpuStats.GetCpuFile()
+                            && enabled[OVERLAY_PARAM_ENABLED_cpu_temp];
++   if (!gpus)
++      gpus = std::make_unique<GPUS>(&params);
++
++   enabled[OVERLAY_PARAM_ENABLED_cpu_power] = cpuStats.InitCpuPowerData()
++                           && enabled[OVERLAY_PARAM_ENABLED_cpu_power];
+ #endif
+ }
+ 
+-- 
+2.51.2
+
