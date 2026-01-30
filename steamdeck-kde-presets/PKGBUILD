@@ -1,7 +1,7 @@
 # Maintainer David Edmundson (bluesystems@davidedmundson.co.uk)
 
 pkgname=steamdeck-kde-presets
-_srctag=3.8.1
+_srctag=3.8.3
 pkgver=${_srctag#jupiter-}
 pkgrel=1
 arch=('any')
@@ -11,7 +11,7 @@ license=('GPL2')
 depends=('kdialog')
 makedepends=('git' 'openssh')
 source=("git+https://github.com/evlav/steamdeck-kde-presets.git#tag=$_srctag")
-sha512sums=('7be34248e2b072cd5477cf86e6b7492317fd658cde76d06e60030766683cb603072c17f2f15d5486c2e13d1a888ec28c64b53f1bd98c18a7d967dc3c3bda8cd8')
+sha512sums=('191d6e492f91fdf1cd53c3eb4e453b3a24fcc9b2497a4dcec78046d287a73e9c947cddf81c265c40e031655020d5af4e81c90f75ea2ee218e9b099c0cf969c82')
 
 package() {
   cp -R "$srcdir"/steamdeck-kde-presets/* "$pkgdir"
