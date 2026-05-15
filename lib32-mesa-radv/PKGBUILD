@@ -27,8 +27,8 @@ pkgname=(
 # When updating the tag, consider if you are adding any shader compiler changes. If so,
 # or if you are not sure, regenerate the radv-build-id below. To update, see
 # https://github.com/evlav/docs/-/wikis/How-to-make-a-new-Mesa-release#updating-the-radv-build-id
-_tag=steamos-26.05.0
-pkgver=26.2.0_devel.222043.steamos_26.05.0
+_tag=steamos-26.05.1
+pkgver=26.2.0_devel.222055.steamos_26.05.1
 
 #pkgver=25.2.7
 #_pkgver=${pkgver/[a-z]/-&}
@@ -283,7 +283,7 @@ build() {
     -D gpuvis=true
     -D display-info=disabled
     -D amdgpu-virtio=true
-    -D radv-build-id="976f92a10d7f64fab15844fd71d64386554ae546"
+    -D radv-build-id="367bb2654c317f340e209b0d816986ca31f4aed2"
   )
 
   # Build only minimal debug info to reduce size
