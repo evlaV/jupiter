@@ -136,6 +136,9 @@ export STEAM_ENABLE_CEC=1
 # One-cgroup-per-game for VRAM management
 export STEAM_LAUNCH_WRAPPER_SCOPE=1
 
+# Disable gamescope path in streaming_client until buffer frozen issues are understood better
+export GAMESCOPE_DISPLAY_DISABLED=1
+
 # Set input method modules for Qt/GTK that will show the Steam keyboard
 export QT_IM_MODULE=steam
 export GTK_IM_MODULE=Steam
@@ -156,9 +159,6 @@ export ENABLE_GAMESCOPE_WSI=1
 
 # To play nice with the short term callback-based limiter for now
 export GAMESCOPE_LIMITER_FILE="$(mktemp /tmp/gamescope-limiter.XXXXXXXX)"
-
-# Temporary crutch until dummy plane interactions / etc are figured out
-export GAMESCOPE_DISABLE_ASYNC_FLIPS=1
 
 export XCURSOR_THEME=steam
 export XCURSOR_SCALE=256
