@@ -33,7 +33,7 @@ pkgver=26.0.0_devel.214832.steamos_25.11.12
 #pkgver=25.2.7
 #_pkgver=${pkgver/[a-z]/-&}
 
-pkgrel=1
+pkgrel=2
 epoch=0
 pkgdesc="Open-source OpenGL drivers - 32-bit"
 url="https://www.mesa3d.org/"
@@ -154,7 +154,7 @@ _gencrates() {
 for _crate in "${!_crates[@]}"; do
   _ver="${_crates[$_crate]}"
   source+=(
-    "$_crate-$_ver.tar.gz::https://crates.io/api/v1/crates/$_crate/$_ver/download"
+    "$_crate-$_ver.tar.gz::https://static.crates.io/crates/$_crate/$_ver/download"
   )
 done
 
