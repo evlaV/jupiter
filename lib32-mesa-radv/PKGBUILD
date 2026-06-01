@@ -27,13 +27,13 @@ pkgname=(
 # When updating the tag, consider if you are adding any shader compiler changes. If so,
 # or if you are not sure, regenerate the radv-build-id below. To update, see
 # https://github.com/evlav/docs/-/wikis/How-to-make-a-new-Mesa-release#updating-the-radv-build-id
-_tag=steamos-26.05.3
-pkgver=26.2.0_devel.222064.steamos_26.05.3
+_tag=steamos-26.05.5
+pkgver=26.2.0_devel.222077.steamos_26.05.5
 
 #pkgver=25.2.7
 #_pkgver=${pkgver/[a-z]/-&}
 
-pkgrel=2
+pkgrel=1
 epoch=0
 pkgdesc="Open-source OpenGL drivers - 32-bit"
 url="https://www.mesa3d.org/"
@@ -283,7 +283,7 @@ build() {
     -D gpuvis=true
     -D display-info=disabled
     -D amdgpu-virtio=true
-    -D radv-build-id="9b0280c1196334e89a4483d730b11663d0764263"
+    -D radv-build-id="6b6bd4b7d08a673584caf4932ae5149a8e17b0e4"
   )
 
   # Build only minimal debug info to reduce size
