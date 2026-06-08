@@ -23,11 +23,11 @@ pkgname=(
   lib32-vulkan-mesa-implicit-layers
   lib32-vulkan-mesa-layers
 )
-_tag=radeonsi-26.1.0
-pkgver=26.1.0.221388.radeonsi_26.1.0
+_tag=radeonsi-26.1.2
+pkgver=26.1.2.221562.radeonsi_26.1.2
 #pkgver=25.3.0
 #_pkgver=${pkgver/[a-z]/-&}
-pkgrel=3
+pkgrel=1
 epoch=0
 pkgdesc="Open-source OpenGL drivers - 32-bit"
 url="https://www.mesa3d.org/"
@@ -258,7 +258,7 @@ build() {
     -D vulkan-layers=device-select,intel-nullhw,overlay,screenshot,vram-report-limit
     -D gallium-rusticl=false
     -D amdgpu-virtio=true
-    -D radeonsi-build-id=114ef594ebd05ff98fda0b3ebeeb08cbfac31e11
+    -D radeonsi-build-id=296ae0bd2c38c518776cab92d3f8efd85675002e
   )
 
   # Build only minimal debug info to reduce size
