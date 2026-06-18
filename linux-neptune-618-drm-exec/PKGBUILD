@@ -1,10 +1,10 @@
 # Maintainer: John Schoenick <johns@valvesoftware.com>
 # Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
-pkgbase=linux-neptune-616-drm-exec
-_tag=6.16.12-drmexec2-valve24
+pkgbase=linux-neptune-618-drm-exec
+_tag=6.18.33-drmexec-valve2
 pkgver=${_tag//-/.}
-pkgrel=2
+pkgrel=1
 pkgdesc='Linux'
 url="https://github.com/evlav/linux-integration/-/tree/$_tag"
 arch=(x86_64)
@@ -39,12 +39,12 @@ options=(
 _srcname=archlinux-linux-neptune
 source=(
   "$_srcname::git+https://github.com/evlav/linux-integration.git#tag=$_tag"
-  config          # Upstream Arch Linux kernel configuration file, DO NOT EDIT!!!
-  config-neptune  # Jupiter: the neptune kernel fragment file (overrides 'config' above)
+  config.x86_64   # Upstream Arch Linux kernel configuration file, DO NOT EDIT!!!
+  config-neptune  # Jupiter: the neptune kernel fragment file (overrides 'config.x86_64' above)
 )
-sha256sums=('1e2fa383c73f49ccb5ba6686955ad7ffd0ed4154772c8e9207cced78fc774f0f'
-            '37452b4d09e5e42134ae24a61f2f656790837c327268074cf79d7dab3558b972'
-            '77496cd22951ef96c5b9a041bd881f015d20f280dd26547c2e3a04be6ae98441')
+sha256sums=('c73734488b587dbb82d73c237fc4db815e31258ecdc53e7fb97a65ce7e965a2d'
+            'e765199f6fbafbe57d013d40e0d2918cbab30fb2a090e01eb7821a515b6b1b8a'
+            'b8a7ce6803cc56edb5d1b4dbb35ef0697baaf15ceded9cdc5613f5264efb9c43')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
@@ -68,10 +68,10 @@ prepare() {
   done
 
   echo "Setting config..."
-  cp ../config .config
-  scripts/kconfig/merge_config.sh -m ../config ../config-neptune # Jupiter: merge the extra fragment
+  cp ../config.x86_64 .config
+  scripts/kconfig/merge_config.sh -m ../config.x86_64 ../config-neptune # Jupiter: merge the extra fragment
   make olddefconfig
-  diff -u ../config .config || :
+  diff -u ../config.x86_64 .config || :
 
   make -s kernelrelease > version
   echo "Prepared $pkgbase version $(<version)"
