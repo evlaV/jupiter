@@ -44,7 +44,7 @@ log "Target OOBE image: $url"
 ## Do the install
 log "Installing '$url' to other slot"
 
-cmd steamos-atomupd-client -d --update-from-url="$url" || die "Install failed, see above."
+cmd atomupd-manager custom-update "$url" --verbose || die "Install failed, see above."
 
 if [[ -n $arg_clean ]]; then
   log "--clean specified, removing network configurations from remote side"
