@@ -4,7 +4,7 @@
 pkgbase=linux-neptune-616
 _tag=6.16.12-valve24
 pkgver=${_tag//-/.}
-pkgrel=2
+pkgrel=2.1
 pkgdesc='Linux'
 url="https://github.com/evlav/linux-integration/-/tree/$_tag"
 arch=(x86_64)
