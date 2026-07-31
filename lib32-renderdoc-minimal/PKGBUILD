@@ -11,14 +11,8 @@
 # If you need a GUI, grab that from renderdoc, as it provides qrenderdoc.
 
 pkgname=lib32-renderdoc-minimal
-
-# v1.27 + 2 commits which fix Deck memory issues on capture.
-_commit=0f851df6c2f85c7f64b7cb680f53d0c57e21ae97
-
-_minor_version=27
-_pkgver=1.${_minor_version}
-pkgver=1.27.r3.g0f851df
-pkgrel=3
+pkgver=1.45
+pkgrel=1
 
 pkgdesc="OpenGL and Vulkan debugging tool (minimal, capture-only, 32-bit)"
 arch=(x86_64)
@@ -28,30 +22,11 @@ makedepends=("git" "cmake" "python")
 depends=("lib32-libx11" "lib32-libxcb" "lib32-mesa" "lib32-libgl" "lib32-xcb-util-keysyms")
 provides=("lib32-renderdoc")
 conflicts=("lib32-renderdoc")
-source=("renderdoc::git+https://github.com/baldurk/renderdoc.git#commit=${_commit}"
-
-        # Holo: backport fix for cmake 4.0
-        # Can be removed when bumping renderdoc to 1.38+
-        4af5b2752138f004631344cc43a411a38c1e1e2e.patch
-)
+source=("https://github.com/baldurk/renderdoc/archive/v${pkgver}.tar.gz"
+        "https://github.com/baldurk/renderdoc/releases/download/v${pkgver}/v${pkgver}.tar.gz.asc")
 validpgpkeys=('1B039DB9A4718A2D699DE031AC612C3120C34695')
-sha384sums=('faa107c61a350a2deb283e88ce4d42ef9c51d8ed75bf696fb3e06357f3801749d26ceb5df983645586661313dfb65d06'
-            'a4612d44f1124552bd24814cc124e3b8272d82e446c797abf627add5a94205b25740607a2e2b3fef929bce1fd6b6e6f1')
-
-pkgver() {
-  cd renderdoc
-  git describe --long --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g' | sed 's/^v//'
-}
-
-prepare() {
-  # Revert the bump to v1.28 server compatibility. This always comes right after a release,
-  # but we want this package to be compatible with v1.27 stable UI clients.
-  cd renderdoc
-  sed -i renderdoc/api/replay/version.h -e "s/RENDERDOC_VERSION_MINOR .*$/RENDERDOC_VERSION_MINOR ${_minor_version}/"
-
-  # Holo
-  patch -p1 -d "${srcdir}/renderdoc" -i "$srcdir/4af5b2752138f004631344cc43a411a38c1e1e2e.patch"
-}
+sha384sums=('936290e8bc46c5653e84a53b9ecc7a53fd7526f81533e5d1bf81425f80178d8a234ae459898dba050339f068ba83b232'
+            'SKIP')
 
 build() {
   export CC="gcc -m32"
@@ -70,15 +45,15 @@ build() {
         -DBUILD_VERSION_DIST_CONTACT="post@arntzen-software.no" \
         -DBUILD_VERSION_DIST_NAME="SteamOS" \
         -DBUILD_VERSION_DIST_VER="${pkgver}.steamos" \
-        -B"${srcdir}/renderdoc"/build \
-        -H"${srcdir}/renderdoc"
-  cmake --build "${srcdir}/renderdoc"/build
+        -B"${srcdir}/renderdoc-${pkgver}"/build \
+        -H"${srcdir}/renderdoc-${pkgver}"
+  cmake --build "${srcdir}/renderdoc-${pkgver}"/build
 }
 
 package() {
-  make DESTDIR="${pkgdir}" -C "${srcdir}/renderdoc"/build install
+  make DESTDIR="${pkgdir}" -C "${srcdir}/renderdoc-${pkgver}"/build install
   mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}"
-  install -Dm644 "${srcdir}/renderdoc/LICENSE.md" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+  install -Dm644 "${srcdir}/renderdoc-${pkgver}/LICENSE.md" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
   # Remove these or they conflict with the base renderdoc package.
   rm -r "${pkgdir}/usr/share/doc"
   rm -r "${pkgdir}/usr/include"
