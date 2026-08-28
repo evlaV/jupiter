@@ -2,7 +2,7 @@
 # Maintainer: Manuel A. Fernandez Montecelo <mafm@igalia.com>
 
 pkgname=vpower
-pkgver=1.6.2
+pkgver=1.6.3
 pkgrel=1
 pkgdesc="Service that calculates battery metrics and handles critical battery scenarios"
 url=https://github.com/evlav/vpower
@@ -21,7 +21,7 @@ source=("git+https://github.com/evlav/vpower.git#tag=$pkgver"
         crate-toml-0.5.8.tar.gz::https://static.crates.io/crates/toml/0.5.8/download
         crate-unicode-ident-1.0.18.tar.gz::https://static.crates.io/crates/unicode-ident/1.0.18/download
        )
-sha256sums=('SKIP'
+sha256sums=('373c1f6d636d9077461e15423d0ee940f55032493666baae69069b8dbe221ee6'
             'bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe'
             'd750af042f7ef4f724306de029d18836c26c1765a54a6a3f094cbd23a7267ffa'
             '02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778'
@@ -30,8 +30,7 @@ sha256sums=('SKIP'
             '5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00'
             '8ce2b7fc941b3a24138a0a7cf8e858bfc6a992e7978a068a5c760deb0ed43caf'
             'a31142970826733df8241ef35dc040ef98c679ab14d7c3e54d827099b3acecaa'
-            '5a5f39404a5da50712a4c1eecf25e90dd62b613502b7e925fd4e4d19b5c96512'
-           )
+            '5a5f39404a5da50712a4c1eecf25e90dd62b613502b7e925fd4e4d19b5c96512')
 
 prepare() {
   # Mark crates as already checksummed
